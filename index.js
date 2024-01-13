@@ -5,15 +5,14 @@ const app = express();
 const port = 3000;
 
 
-app.get("/", (req, res) =>{
-    res.send("Hello World!");
-});
 
-app.post("/inet", (req,res) => {
+
+app.post("/", (req,res) => {
     let message;
+    const vpn = req.query.vpn;
+    const conf = req.query.config;
     try{
-        const conf = req.query.config;
-        fs.writeFile("inet.conf", conf, (err) => {
+        fs.writeFile(`${vpn}.conf`, conf, (err) => {
             if (err) throw err;
             console.log("The file has been saved!");
           });
@@ -29,11 +28,20 @@ app.post("/inet", (req,res) => {
     res.send(message);
 });
 
-app.get("/inet", (req, res) => {
+app.get("/", (req, res) => {
+    if(!req.query.vpn){
+        res.send("Hello World!");
+        return;
+    }
     try {
-        const data = fs.readFileSync('inet.conf', 'utf8');
-        console.log(data);
-        res.send(data);
+        const vpn = req.query.vpn;
+        if (fs.existsSync(`${vpn}.conf`)) {
+            const data = fs.readFileSync(`${vpn}.conf`, 'utf8');
+            res.send(data);
+        }else{
+            throw Error ("Config Not Found")
+        }
+        
       } catch (error) {
         console.error(error);
         const message = {
